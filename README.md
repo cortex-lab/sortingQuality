@@ -1,7 +1,7 @@
 # sortingQuality
 Functions to assess quality of spike sorting results.
 
-The outputs of these functions may serve as a guide to determining how "well isolated" or how contaminated your sorted spikes may be. We do not make any general recommendations about what values returned by these functions may consitute a "good" neuron, and each measure may have its limiations. Ultimately, for any particular experimental result, we recommend making a plot of the value of that result against the sorting quality measure - if the result goes to zero as sorting quality metrics increase, then it likely reflects an artifact of poor spike sorting. 
+The outputs of these functions may serve as a guide to determining how "well isolated" or how contaminated your sorted spikes may be. We do not make any general recommendations about what values returned by these functions consitute a "good" neuron, and each measure has its limiations. Ultimately, for any particular experimental result, we recommend making a plot of the value of that result against any sorting quality measures - if the result disappears as sorting quality metrics improve, then it likely reflects an artifact of poor spike sorting. 
 
 Ideally, this repository will contain functions in both python and matlab. 
 
