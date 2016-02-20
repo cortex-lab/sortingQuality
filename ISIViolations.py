@@ -1,4 +1,5 @@
 def ISIViolations(spikeTrain, minISI, refDur):
+	# See matlab version for commentary
 	isis = np.diff(spikeTrain)
 	nSpikes = len(spikeTrain)
 	numViolations = sum(isis<refDur) 
