@@ -10,8 +10,8 @@ function [clusterIDs, unitQuality, contaminationRate] = maskedClusterQualitySpar
 if nargin<4
     fetNchans = min(4, size(fetInds,2)); % number of channels to use
 end
-
-fetN = fetNchans*size(fet,2); % now number of features total
+nFetPerChan = size(fet,2);
+fetN = fetNchans*nFetPerChan; % now number of features total
 % fet = reshape(fet, size(fet,1), []);
 
 N = numel(clu);
@@ -34,19 +34,35 @@ for c = 1:numel(clusterIDs)
         continue
     end
     
-    fetThisCluster = reshape(fet(theseSp,:,1:fetN), n, []);
+    fetThisCluster = reshape(fet(theseSp,:,1:fetNchans), n, []);
     
     % now we need to find other spikes that exist on the same channels
-    spikesThisChan = zeros(N,fetNchans,size(fet,2));
-    otherFet = fet(~theseSp,:,:);
-%     otherFetInds = fetInds(~theseSp,:);
-    for chInd = 1:fetNchans
+    theseChans = fetInds(c,1:fetNchans);
+    for f = 1:fetNchans
+        thisChanInds = fetInds==theseChans(f);
+        [chanInds,clustWithThisChan] = find(thisChanInds');
+        chanInds = chanInds(clustWithThisChan~=c);
+        clustWithThisChan = clustWithThisChan(clustWithThisChan~=c);                
         
-        hasThisChan = otherFetInds==fetInds(
+        otherSpikes = ismember(clu, clusterIDs(clustWithThisChan));
+        nOtherSpikes = sum(otherSpikes);
         
-        spikesThisChan(chInd,:) = clu~=clusterIDs(c) & any(bsxfun(@eq, fetInds
+        fetOtherClusters = zeros(nOtherSpikes, nFetPerChan, fetNchans);
+        nInd = 1;              
+        
+        for t = 1:numel(clustWithThisChan)            
+            thisCfetInd = chanInds(t);
+            theseOtherSpikes = clu==clusterIDs(clustWithThisChan(t));
+            fetOtherClusters(nInd:nInd+sum(theseOtherSpikes)-1,:,f) = ...
+                fet(theseOtherSpikes,:,thisCfetInd);
+            nInd = nInd+sum(theseOtherSpikes);
+        end
+        
+    end
     
-    [uQ, cR] = maskedClusterQualityCore(fetThisCluster, fet(i, bestFeatures));
+    fetOtherClusters = reshape(fetOtherClusters, size(fetOtherClusters,1), []);
+    
+    [uQ, cR] = maskedClusterQualityCore(fetThisCluster, fetOtherClusters);
     
     unitQuality(c) = uQ;
     contaminationRate(c) = cR;

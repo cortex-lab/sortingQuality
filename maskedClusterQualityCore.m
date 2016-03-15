@@ -10,9 +10,11 @@ md = sort(md);
 mdSelf = mahal(fetThisCluster, fetThisCluster);
 mdSelf = sort(mdSelf);
 
+n = size(fetThisCluster,1);
+
 if numel(md) > n
     unitQuality = md(n);
-    contaminationRate = tippingPoint(mdSelf, md)/numel(mdSelf);
+    contaminationRate = 1-tippingPoint(mdSelf, md)/numel(mdSelf);
 else
     unitQuality = 0;
     contaminationRate = NaN;
@@ -35,5 +37,11 @@ nX = numel(x);
 xInds = inds(1:nX);
 
 pos = find(nX:-1:1 < xInds'-(1:nX), 1)-1;
+
+if isempty(pos)
+    % not a single "other" spike was nearer the cluster than the furthest
+    % in-cluster spike
+    pos = nX; % will give contaminationRate = 0;
+end
 
 end

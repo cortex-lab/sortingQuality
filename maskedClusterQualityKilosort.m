@@ -1,6 +1,8 @@
 
 function [clusterIDs, unitQuality, contaminationRate] = maskedClusterQualityKilosort(resultsDirectory)
 
+fprintf(1, 'loading data...\n');
+
 try
     pc_features = readNPY([resultsDirectory 'pc_features.npy']); % features of each spike
 catch me
@@ -15,6 +17,7 @@ pc_feature_ind = readNPY([resultsDirectory 'pc_feature_ind.npy']); % the (small)
 pc_feature_ind = pc_feature_ind + 1;   % because in Python indexes start at 0
 
 if exist([resultsDirectory 'spike_clusters.npy'])
+    fprintf('building features matrix from clusters/templates\n')
     spike_clusters = readNPY([resultsDirectory 'spike_clusters.npy']);
     spike_clusters = spike_clusters + 1; % because in Python indexes start at 0
         
@@ -31,37 +34,43 @@ if exist([resultsDirectory 'spike_clusters.npy'])
     
     newFet = zeros(nSpikes, nFetPerChan, nFet);
     newFetInds = zeros(nClusters, nFet);
-    tempNums = 1:nTemplates;
+    %tempNums = 1:nTemplates;
     
     for c = 1:length(clusterIDs)
+%         fprintf(1, '%d/%d\n', c, length(clusterIDs))
         thisID = clusterIDs(c);
         
         theseSpikes = spike_clusters==thisID;
         theseTemplates = spike_templates(theseSpikes);
-        inclTemps = unique(theseTemplates); 
-        inst = countUnique(theseTemplates); 
+        [inclTemps, inst] = countUnique(theseTemplates); 
         
         thisTemplate = inclTemps(inst==max(inst),1);
         
         theseChans = pc_feature_ind(thisTemplate,1:nFet);
         newFetInds(c,:) = theseChans;
         
-        subPCFetInd = pc_features(theseSpikes,:,:);
+        %subPCFetInd = pc_features(theseSpikes,:,:);
         
                 
         for f = 1:nFet
             thisChanInds = pc_feature_ind==theseChans(f);
             [chanInds,tempsWithThisChan] = find(thisChanInds');
-            spikesWithThisFet = ismember(theseTemplates, tempsWithThisChan);
+            %spikesWithThisFet = ismember(theseTemplates, tempsWithThisChan);
                         
             inclTempsWithThisFet = find(ismember(inclTemps, tempsWithThisChan));
             for t = 1:numel(inclTempsWithThisFet)
-                thisSubTemp = inclTemps(inclTempsWithThisFet(t))
-                newFet(spikesWithThisFet,:,f) = pc_features(
+                thisSubTemp = inclTemps(inclTempsWithThisFet(t));
+                thisTfetInd = chanInds(inclTempsWithThisFet(t));
+                newFet(theseSpikes&spike_templates==thisSubTemp,:,f) = ...
+                    pc_features(theseSpikes&spike_templates==thisSubTemp,:,thisTfetInd);
+            end
             
             
         end
     end
+    
+    pc_features = newFet;
+    pc_feature_ind = newFetInds;
 else
     fprintf(1, 'warning, spike_clusters does not exist, using spike_templates instead\n');
     spike_clusters = readNPY([resultsDirectory 'spike_templates.npy']); % template # corresponding to each spike
@@ -72,6 +81,7 @@ end
 
 assert(numel(size(pc_features)) == 3)
 
+fprintf(1, 'computing cluster qualities...\n');
 [clusterIDs, unitQuality, contaminationRate] = maskedClusterQualitySparse(spike_clusters, pc_features, pc_feature_ind);
 
 
