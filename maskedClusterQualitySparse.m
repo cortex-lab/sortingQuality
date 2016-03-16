@@ -38,27 +38,54 @@ for c = 1:numel(clusterIDs)
     
     % now we need to find other spikes that exist on the same channels
     theseChans = fetInds(c,1:fetNchans);
-    for f = 1:fetNchans
-        thisChanInds = fetInds==theseChans(f);
-        [chanInds,clustWithThisChan] = find(thisChanInds');
-        chanInds = chanInds(clustWithThisChan~=c);
-        clustWithThisChan = clustWithThisChan(clustWithThisChan~=c);                
-        
-        otherSpikes = ismember(clu, clusterIDs(clustWithThisChan));
-        nOtherSpikes = sum(otherSpikes);
-        
-        fetOtherClusters = zeros(nOtherSpikes, nFetPerChan, fetNchans);
-        nInd = 1;              
-        
-        for t = 1:numel(clustWithThisChan)            
-            thisCfetInd = chanInds(t);
-            theseOtherSpikes = clu==clusterIDs(clustWithThisChan(t));
-            fetOtherClusters(nInd:nInd+sum(theseOtherSpikes)-1,:,f) = ...
-                fet(theseOtherSpikes,:,thisCfetInd);
-            nInd = nInd+sum(theseOtherSpikes);
+%     for f = 1:fetNchans
+%         thisChanInds = fetInds==theseChans(f);
+%         [chanInds,clustWithThisChan] = find(thisChanInds');
+%         chanInds = chanInds(clustWithThisChan~=c);
+%         clustWithThisChan = clustWithThisChan(clustWithThisChan~=c);                
+%         
+%         otherSpikes = ismember(clu, clusterIDs(clustWithThisChan));
+%         nOtherSpikes = sum(otherSpikes);
+%         
+%         fetOtherClusters = zeros(nOtherSpikes, nFetPerChan, fetNchans);
+%         nInd = 1;              
+%         
+%         for t = 1:numel(clustWithThisChan)            
+%             thisCfetInd = chanInds(t);
+%             theseOtherSpikes = clu==clusterIDs(clustWithThisChan(t));
+%             fetOtherClusters(nInd:nInd+sum(theseOtherSpikes)-1,:,f) = ...
+%                 fet(theseOtherSpikes,:,thisCfetInd);
+%             nInd = nInd+sum(theseOtherSpikes);
+%         end
+%         
+%     end
+
+    % for each other cluster, determine whether it has at least one of
+    % those channels. If so, add its spikes, with its features put into the
+    % correct places
+    nInd = 1; fetOtherClusters = zeros(0,size(fet,2),size(fet,3));
+    for c2 = 1:numel(clusterIDs)
+        if c2~=c
+            chansC2Has = fetInds(c2,:);
+            for f = 1:length(theseChans)
+                
+                if ismember(theseChans(f), chansC2Has)
+                    theseOtherSpikes = clu==clusterIDs(c2);
+                    thisCfetInd = find(chansC2Has==theseChans(f),1);
+                    fetOtherClusters(nInd:nInd+sum(theseOtherSpikes)-1,:,f) = ...
+                        fet(theseOtherSpikes,:,thisCfetInd);
+                end
+                if any(ismember(chansC2Has, theseChans))
+                    nInd = nInd+sum(theseOtherSpikes);
+                end
+                
+            end
         end
-        
     end
+    
+                
+                
+                
     
     fetOtherClusters = reshape(fetOtherClusters, size(fetOtherClusters,1), []);
     
@@ -68,4 +95,9 @@ for c = 1:numel(clusterIDs)
     contaminationRate(c) = cR;
     
     fprintf('cluster %d: \t%2.1f\t%1.2f\n', c, unitQuality(c), contaminationRate(c)); % comment to suppress printing out the intermediate results
+    
+    if uQ>1000
+        keyboard;
+    end
+    
 end
