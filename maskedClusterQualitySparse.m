@@ -70,15 +70,16 @@ for c = 1:numel(clusterIDs)
             for f = 1:length(theseChans)
                 
                 if ismember(theseChans(f), chansC2Has)
+                    
                     theseOtherSpikes = clu==clusterIDs(c2);
                     thisCfetInd = find(chansC2Has==theseChans(f),1);
                     fetOtherClusters(nInd:nInd+sum(theseOtherSpikes)-1,:,f) = ...
                         fet(theseOtherSpikes,:,thisCfetInd);
-                end
-                if any(ismember(chansC2Has, theseChans))
-                    nInd = nInd+sum(theseOtherSpikes);
-                end
+                end                
                 
+            end
+            if any(ismember(chansC2Has, theseChans))
+                nInd = nInd+sum(theseOtherSpikes);
             end
         end
     end

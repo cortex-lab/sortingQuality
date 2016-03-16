@@ -2,17 +2,20 @@
 function [unitQuality, contaminationRate] = maskedClusterQualityCore(fetThisCluster, fetOtherClusters)
 % fetThisCluster and fetOtherClusters are size [nSpikes, nFeatures]
 
-% Mahalanobis distance of each of the spikes from present cluster,
-  % using only the best fetN dimensions:  
-md = mahal(fetOtherClusters, fetThisCluster);
-md = sort(md);
-
-mdSelf = mahal(fetThisCluster, fetThisCluster);
-mdSelf = sort(mdSelf);
 
 n = size(fetThisCluster,1);
+nOther = size(fetOtherClusters,1);
+nFet = size(fetThisCluster,2);
 
-if numel(md) > n
+if nOther > n && n>nFet
+    % Mahalanobis distance of each of the spikes from present cluster,
+      % using only the best fetN dimensions:  
+    md = mahal(fetOtherClusters, fetThisCluster);
+    md = sort(md);
+
+    mdSelf = mahal(fetThisCluster, fetThisCluster);
+    mdSelf = sort(mdSelf);
+
     unitQuality = md(n);
     contaminationRate = 1-tippingPoint(mdSelf, md)/numel(mdSelf);
 else

@@ -47,6 +47,9 @@ if exist([resultsDirectory 'spike_clusters.npy'])
         thisTemplate = inclTemps(inst==max(inst),1);
         
         theseChans = pc_feature_ind(thisTemplate,1:nFet);
+        
+        
+        
         newFetInds(c,:) = theseChans;
         
         %subPCFetInd = pc_features(theseSpikes,:,:);
@@ -60,7 +63,7 @@ if exist([resultsDirectory 'spike_clusters.npy'])
             inclTempsWithThisFet = find(ismember(inclTemps, tempsWithThisChan));
             for t = 1:numel(inclTempsWithThisFet)
                 thisSubTemp = inclTemps(inclTempsWithThisFet(t));
-                thisTfetInd = chanInds(inclTempsWithThisFet(t));
+                thisTfetInd = chanInds(tempsWithThisChan==thisSubTemp);
                 newFet(theseSpikes&spike_templates==thisSubTemp,:,f) = ...
                     pc_features(theseSpikes&spike_templates==thisSubTemp,:,thisTfetInd);
             end
