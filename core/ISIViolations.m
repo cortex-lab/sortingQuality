@@ -28,6 +28,13 @@ violationTime = 2*length(spikeTrain)*(refDur-minISI); % total time available for
 violationRate = numViolations/violationTime;
 fpRate = violationRate/totalRate;
 
+if fpRate>1
+    % it is nonsense to have a rate >1, however having such large rates
+    % does tell you something interesting, namely that the assumptions of
+    % this analysis are failing!
+    fpRate = 1; 
+end
+
 
 % Here is with Dan Hill's equation (J. Neurosci, 2012)
 %  NOTE: actually, this method will return imaginary results for large-ish

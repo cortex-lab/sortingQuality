@@ -1,5 +1,5 @@
 
-function [clusterIDs, unitQuality, contaminationRate] = maskedClusterQualityKwik(baseFilename, shankIndex)
+function [clusterIDs, unitQuality, contaminationRate] = maskedClusterQuality(baseFilename, shankIndex)
 % if ispc
 %   baseFilename  = '\\basket.cortexlab.net\M150218_NS1LAV\20150601\20150601_all';
 % else
