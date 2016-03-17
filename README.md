@@ -17,9 +17,9 @@ Output: estimated rate of spikes that come from another neuron besides the prima
 
 Notes: This analysis assumes the primary neuron and any other neurons are completely uncorrelated in their spike times. It will be highly unreliable in cases when this assumption is strongly violated, e.g. when two visual cortical neurons have different orientation preference and, when driven with oriented stimuli, rarely spike together due to the stimulus set. This analysis will be unreliable for neurons with low spike counts; in particular, if the neuron has a low spike rate, then zero refractory violations may be a statistically likely outcome even in the face of strong contamination. 
 
-### IsoDistance
+### maskedClusterQuality
 
-Computes "isolation distance". If there are more than four channels on the probe, uses a modified calculation with only the top four channels per cluster, to avoid dimensionality problems. Method adapted from Schmitzer-Torber et al., Neuroscience, 2005. 
+Computes "isolation distance". If there are more than four channels on the probe, uses a modified calculation with only the top four channels per cluster, to avoid dimensionality problems. In addition to returning Isolation Distance, this method also returns a "contamination rate" which is the proportion of spikes inside the cluster boundary that aren't from the cluster (false positive rate), if you set the cluster boundary at a mahalanobis distance such that there are equal false positives and false negatives. Method adapted from Schmitzer-Torber et al., Neuroscience, 2005. 
 
 ### GaussianContamination
 
