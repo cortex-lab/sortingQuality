@@ -95,7 +95,7 @@ for c = 1:numel(clusterIDs)
     unitQuality(c) = uQ;
     contaminationRate(c) = cR;
     
-    fprintf('cluster %d: \t%2.1f\t%1.2f\n', c, unitQuality(c), contaminationRate(c)); % comment to suppress printing out the intermediate results
+    fprintf('cluster %d: \t%2.1f\t%1.2f\n', clusterIDs(c), unitQuality(c), contaminationRate(c)); % comment to suppress printing out the intermediate results
     
     if uQ>1000
         keyboard;
