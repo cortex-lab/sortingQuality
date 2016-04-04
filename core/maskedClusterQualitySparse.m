@@ -63,7 +63,7 @@ for c = 1:numel(clusterIDs)
     % for each other cluster, determine whether it has at least one of
     % those channels. If so, add its spikes, with its features put into the
     % correct places
-    nInd = 1; fetOtherClusters = zeros(0,size(fet,2),size(fet,3));
+    nInd = 1; fetOtherClusters = zeros(0,size(fet,2),fetNchans);
     for c2 = 1:numel(clusterIDs)
         if c2~=c
             chansC2Has = fetInds(c2,:);
