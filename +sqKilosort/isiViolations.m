@@ -34,6 +34,6 @@ for c = 1:numel(clusterIDs)
     [fpRate, numViolations] = ISIViolations(spike_times(spike_clusters==clusterIDs(c)), minISI, refDur);
     isiV(c) = fpRate;
     nSpikes = sum(spike_clusters==clusterIDs(c));    
-    fprintf(1, 'cluster %d: %d viol (%d spikes), %.2f estimated FP rate\n', clusterIDs(c), numViolations, nSpikes, fpRate);
+    fprintf(1, 'cluster %3d: %d viol (%d spikes), %.2f estimated FP rate\n', clusterIDs(c), numViolations, nSpikes, fpRate);
     
 end
