@@ -2,28 +2,35 @@
 function [clusterIDs, unitQuality, contaminationRate] = maskedClusterQualityKilosort(resultsDirectory)
 
 fprintf(1, 'loading data...\n');
+%% Precompute the locationsn of files to be loaded
+pcFeaturesPath = fullfile(resultsDirectory,'pc_features.npy');
+pcFeaturesIndPath = fullfile(resultsDirectory,'pc_feature_ind.npy');
+spikeClustersPath = fullfile(resultsDirectory,'spike_clusters.npy');
+spikeTemplatesPath = fullfile(resultsDirectory,'spike_templates.npy');
 
+
+%% Main code.
 try
-    pc_features = readNPY([resultsDirectory 'pc_features.npy']); % features of each spike
+    pc_features = readNPY(pcFeaturesPath); % features of each spike
 catch me
-    if ~exist([resultsDirectory 'pc_features.npy'])
+    if ~exist(pcFeaturesPath, 'file')
         fprintf(1, 'PC Features loading failed. File does not exist.\n');
     else
         fprintf(1, 'PC Features loading failed. You may need to clone the npy-matlab repo and add to path.\n');
     end
     rethrow me
 end
-pc_feature_ind = readNPY([resultsDirectory 'pc_feature_ind.npy']); % the (small) subset of channels corresponding to each template
+pc_feature_ind = readNPY(pcFeaturesIndPath); % the (small) subset of channels corresponding to each template
 pc_feature_ind = pc_feature_ind + 1;   % because in Python indexes start at 0
 
-if exist([resultsDirectory 'spike_clusters.npy'])
+if exist(spikeClustersPath,'file')
     fprintf('building features matrix from clusters/templates\n')
-    spike_clusters = readNPY([resultsDirectory 'spike_clusters.npy']);
+    spike_clusters = readNPY(spikeClustersPath);
     spike_clusters = spike_clusters + 1; % because in Python indexes start at 0
         
     % now we have to construct a new pc_features that has the features
     % arranged according to *cluster* rather than template. 
-    spike_templates = readNPY([resultsDirectory 'spike_templates.npy']);
+    spike_templates = readNPY(spikeTemplatesPath);
     spike_templates = spike_templates+1;
     
     clusterIDs = unique(spike_clusters);
@@ -76,7 +83,7 @@ if exist([resultsDirectory 'spike_clusters.npy'])
     pc_feature_ind = newFetInds;
 else
     fprintf(1, 'warning, spike_clusters does not exist, using spike_templates instead\n');
-    spike_clusters = readNPY([resultsDirectory 'spike_templates.npy']); % template # corresponding to each spike
+    spike_clusters = readNPY(spikeTemplatesPath); % template # corresponding to each spike
     spike_clusters = spike_clusters + 1; % because in Python indexes start at 0
 end
 

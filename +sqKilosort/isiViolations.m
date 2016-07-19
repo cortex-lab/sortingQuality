@@ -2,19 +2,27 @@
 
 function isiV = isiViolations(resultsDirectory)
 
+%% Precompute the locationsn of files to be loaded
+spikeClustersPath = fullfile(resultsDirectory,'spike_clusters.npy');
+spikeTemplatesPath = fullfile(resultsDirectory,'spike_templates.npy');
+spikeTimesPath= fullfile(resultsDirectory,'spike_times.npy');
+paramsPath= fullfile(resultsDirectory,'params.py');
+
+%% 
+
 refDur = 0.002;
 minISI = 0.0005;
 
 fprintf(1, 'loading data for ISI computation\n');
-if exist([resultsDirectory 'spike_clusters.npy'])
-    spike_clusters = readNPY([resultsDirectory 'spike_clusters.npy']);
+if exist(spikeClustersPath)
+    spike_clusters = readNPY(spikeClustersPath);
 else
-    spike_clusters = readNPY([resultsDirectory 'spike_templates.npy']);
+    spike_clusters = readNPY(spikeTemplatesPath);
 end
 spike_clusters = spike_clusters + 1; % because in Python indexes start at 0
 
-spike_times = readNPY([resultsDirectory 'spike_times.npy']);
-params = readKSparams([resultsDirectory 'params.py']);
+spike_times = readNPY(spikeTimesPath);
+params = readKSparams(paramsPath);
 spike_times = double(spike_times)/params.sample_rate;
 
 fprintf(1, 'computing ISI violations\n');
