@@ -1,4 +1,4 @@
-ksRoot = 'J:\M160731_MOEC\2016-08-28';
+ksRoot = 'G:\data\Hopkins\2016-07-22';
 loadPars.loadPCs = true;
 sp = loadKSdir(ksRoot, loadPars);
 
@@ -24,15 +24,17 @@ params.nWFsToPlot = 100;
 params.gain = 0.6/512/500*1e6; % raw file units to uV
 params.nPCsToPlot = 50000;
 sparsePCfeat = sparsePCs(pcFeat, pcFeatInd, sp.spikeTemplates);
-for q = 1%:length(inclCID)
-    thisClu = inclCID(q);
 
-    [v, i] = countUnique(sp.spikeTemplates(clu==thisClu));
-    thisTempID = v(find(i==max(i),1));
-    template = squeeze(sp.temps(thisTempID+1,:,:));
+%%
+for q = 2%:length(inclCID)
+    clusterID = inclCID(q);
 
-    figHand = neuronFig(thisClu, st, clu, sparsePCfeat, [], params);
-    set(figHand, 'Position', [-1890         -59        1810        1031]);
+%     [v, i] = countUnique(sp.spikeTemplates(clu==clusterID));
+%     thisTempID = v(find(i==max(i),1));
+%     template = squeeze(sp.temps(thisTempID+1,:,:));
+
+    figHand = neuronFig(clusterID, st, clu, sparsePCfeat, [], params);
+%     set(figHand, 'Position', [-1890         -59        1810        1031]);
 %     saveFig(figHand, fullfile(figDir, sprintf('/cluster%d', thisClu)))
 %     close(figHand); clear figHand
 %     makeClusterFigsWebsite(figDir)

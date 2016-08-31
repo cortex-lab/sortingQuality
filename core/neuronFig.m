@@ -35,14 +35,17 @@ xc = params.xcoords; yc = params.ycoords;
 theseST = spikeTimes(clu==clusterID);
 
 % Extract waveforms from this neuron and from background
-extractST = round(theseST(randperm(length(theseST), params.nWFsToLoad))*params.Fs); 
+nWFsToLoad = min(params.nWFsToLoad, length(theseST));
+extractST = round(theseST(randperm(length(theseST), nWFsToLoad))*Fs);
+
+
 extractBckg = randperm(nSamp-numel(wfWin)-2, params.nWFsToPlot)-wfWin(1); % *samples* of background spikes
 
 mmf = memmapfile(params.filename, 'Format', {params.dataType, [nChInFile nSamp], 'x'});
 
-theseWF = zeros(params.nWFsToLoad, nCh, nWFsamps);
+theseWF = zeros(nWFsToLoad, nCh, nWFsamps);
 bckgWF = zeros(params.nWFsToPlot, nCh, nWFsamps);
-for i=1:params.nWFsToLoad
+for i=1:nWFsToLoad
      tempWF = mmf.Data.x(1:nChInFile,extractST(i)+wfWin(1):extractST(i)+wfWin(end));
      theseWF(i,:,:) = tempWF(params.chanMap+1,:);
 end
@@ -90,7 +93,7 @@ set(f, 'Color', 'w');
 neuronColor = [ 0    0.4470    0.7410]; % blue that's first default
 otherColor = [0.4660    0.6740    0.1880];
 
-% plot of location on probe
+%% plot of location on probe
 subplot(4,5,[1 6 11 16])
 plotAsProbe(-chanAmps, xc, yc, colormap(gray), 16, 40)
 hold on;
@@ -101,7 +104,7 @@ title('neuron position')
 % xlabel('space (µm)')
 % ylabel('space (µm)')
 
-% plot of waveforms, zoomed around location
+%% plot of waveforms, zoomed around location
 subplot(4,5, [2 3 7 8 12 13]);
 xPlot = xc(chansToPlot);
 yPlot = yc(chansToPlot);
