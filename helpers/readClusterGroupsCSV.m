@@ -1,6 +1,7 @@
 
 
 function [cids, cgs] = readClusterGroupsCSV(filename)
+%function [cids, cgs] = readClusterGroupsCSV(filename)
 
 fid = fopen(filename);
 C = textscan(fid, '%s%s');
