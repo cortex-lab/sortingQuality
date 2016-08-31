@@ -2,13 +2,17 @@
 
 function [cgs, uQ, cR, isiV] = computeAllMeasures(resultsDirectory)
 
-if exist(fullfile(resultsDirectory, 'cluster_groups.csv'))
-    [cids, cgs] = readClusterGroupsCSV(fullfile(resultsDirectory, 'cluster_groups.csv'));
-elseif exist(fullfile(resultsDirectory, 'spike_clusters.npy'))
-    clu = readNPY(fullfile(resultsDirectory, 'spike_clusters.npy'));
+clusterPath = fullfile(resultsDirectory, 'cluster_groups.csv');
+spikeClustersPath = fullfile(resultsDirectory,'spike_clusters.npy');
+spikeTemplatesPath = fullfile(resultsDirectory,'spike_templates.npy');
+
+if exist(clusterPath, 'file')
+    [cids, cgs] = readClusterGroupsCSV(clusterPath);
+elseif exist(spikeClustersPath, 'file')
+    clu = readNPY(spikeClustersPath);
     cgs = 3*ones(size(unique(clu))); % all unsorted
 else
-    clu = readNPY(fullfile(resultsDirectory, 'spike_templates.npy'));
+    clu = readNPY(spikeTemplatesPath);
     cgs = 3*ones(size(unique(clu))); % all unsorted
 end
 

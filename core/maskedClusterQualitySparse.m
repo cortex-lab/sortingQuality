@@ -21,7 +21,7 @@ clusterIDs = unique(clu);
 unitQuality = zeros(size(clusterIDs));
 contaminationRate = zeros(size(clusterIDs));
 
-
+fprintf('%12s\tQuality\tContamination\n', 'ID'); % comment to suppress printing out the intermediate results
 for c = 1:numel(clusterIDs)
     
     theseSp = clu==clusterIDs(c);
@@ -95,7 +95,7 @@ for c = 1:numel(clusterIDs)
     unitQuality(c) = uQ;
     contaminationRate(c) = cR;
     
-    fprintf('cluster %d: \t%2.1f\t%1.2f\n', clusterIDs(c), unitQuality(c), contaminationRate(c)); % comment to suppress printing out the intermediate results
+    fprintf('cluster %3d: \t%6.1f\t%6.2f\n', clusterIDs(c), unitQuality(c), contaminationRate(c)); % comment to suppress printing out the intermediate results
     
     if uQ>1000
         keyboard;
