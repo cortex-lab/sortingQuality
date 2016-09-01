@@ -80,31 +80,33 @@ snr = wfAmp./median(abs(bckgMaxChan(:))/0.6745); % RQQ method
 
 thesePCs = sparsePCfeat(clu==clusterID,:);
 meanPC = mean(thesePCs);
-[~, ii] = sort(meanPC, 2, 'descend');
+[~, ii] = sort(abs(meanPC), 2, 'descend');
 topChans = ii(1:2);
 
-% Method 1: just pick the top two channels for this cluster
-otherSpikesIncl = sparsePCfeat(:,topChans(1))~=0 & sparsePCfeat(:,topChans(2))~=0;
-otherSpikesPCs = sparsePCfeat(otherSpikesIncl, topChans);
-otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
-otherPCsToPlot = otherSpikesPCs(otherPCsToPlotInds,:);
-thesePCsToPlot = thesePCs(:,topChans);
-
-% % Method 2: figure out the top two PCs *of the PCs* of this neuron, project
-% all other spikes onto those
-% pcInclChans = full(meanPC)~=0;
-% otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0; % those spikes with non-zero values on at least one included channel
-% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans);
-% 
-% thesePCsIncl = thesePCs(:,pcInclChans);
-% [coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl));
-% thesePCsToPlot = score(:,1:2);
+% % Method 1: just pick the top two channels for this cluster
+% otherSpikesIncl = sparsePCfeat(:,topChans(1))~=0 & sparsePCfeat(:,topChans(2))~=0;
+% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, topChans);
 % otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
-% % project the other spikes to be plotted onto these new vectors
-% otherSpikesToPlotPCs = otherSpikesPCs(otherPCsToPlotInds,:);
+% otherPCsToPlot = otherSpikesPCs(otherPCsToPlotInds,:);
+% thesePCsToPlot = thesePCs(:,topChans);
+
+% Method 2: figure out the top two PCs *of the PCs* of this neuron, project
+% all other spikes onto those
+pcInclChans = full(meanPC)~=0;
+otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0; % those spikes with non-zero values on at least one included channel
+otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans);
+
+thesePCsIncl = thesePCs(:,pcInclChans);
+% [coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl));
+[coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl), 'Centered', false);
+thesePCsToPlot = score(:,1:2);
+otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
+% project the other spikes to be plotted onto these new vectors
+otherSpikesToPlotPCs = otherSpikesPCs(otherPCsToPlotInds,:);
 % otherPCsToPlotScores = bsxfun(@minus, otherSpikesToPlotPCs, mu)*coeff;
 % otherPCsToPlot = otherPCsToPlotScores(:,1:2);
-
+% otherPCsToPlot = bsxfun(@minus, otherSpikesToPlotPCs, mu)*coeff(:,1:2);
+otherPCsToPlot = otherSpikesToPlotPCs*coeff(:,1:2);
 
 %%
 f = figure;
@@ -165,7 +167,7 @@ drawnow;
 % hMarkers2 = h2.MarkerHandle;
 
 title(sprintf('PC features, iso distance = %.2f', stats.isoDistance))
-set(gca, 'YTickLabel', [], 'XTickLabel', []);
+% set(gca, 'YTickLabel', [], 'XTickLabel', []);
 % cEdge = hMarkers.EdgeColorData;
 % cEdge(4) = uint8(0.25*255);
 % cEdge2 = hMarkers2.EdgeColorData;

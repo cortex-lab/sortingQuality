@@ -24,10 +24,10 @@ params.nWFsToLoad = 1000;
 params.nWFsToPlot = 100;
 params.gain = 0.6/512/500*1e6; % raw file units to uV
 params.nPCsToPlot = 50000;
-sparsePCfeat = sparsePCs(pcFeat, pcFeatInd, sp.spikeTemplates);
+sparsePCfeat = sparsePCs(pcFeat, pcFeatInd, sp.spikeTemplates, 2, 10);
 
 %%
-for q = 3%:length(inclCID)
+for q = 11%:length(inclCID)
     clusterID = inclCID(q);
 
 %     [v, i] = countUnique(sp.spikeTemplates(clu==clusterID));
