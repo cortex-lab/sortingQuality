@@ -73,17 +73,38 @@ chansToPlot = chanDistances<params.plotDistance;
 wfAmp = max(chanAmps);
 
 bckgMaxChan = double(squeeze(bckgWF(:,maxChan,:)));
-snr = wfAmp./std(bckgMaxChan(:));
+% snr = wfAmp./std(bckgMaxChan(:));
+snr = wfAmp./median(abs(bckgMaxChan(:))/0.6745); % RQQ method
 
 %% compute PC stuff
 
 thesePCs = sparsePCfeat(clu==clusterID,:);
 meanPC = mean(thesePCs);
 [~, ii] = sort(meanPC, 2, 'descend');
-
 topChans = ii(1:2);
+
+% Method 1: just pick the top two channels for this cluster
 otherSpikesIncl = sparsePCfeat(:,topChans(1))~=0 & sparsePCfeat(:,topChans(2))~=0;
 otherSpikesPCs = sparsePCfeat(otherSpikesIncl, topChans);
+otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
+otherPCsToPlot = otherSpikesPCs(otherPCsToPlotInds,:);
+thesePCsToPlot = thesePCs(:,topChans);
+
+% % Method 2: figure out the top two PCs *of the PCs* of this neuron, project
+% all other spikes onto those
+% pcInclChans = full(meanPC)~=0;
+% otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0; % those spikes with non-zero values on at least one included channel
+% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans);
+% 
+% thesePCsIncl = thesePCs(:,pcInclChans);
+% [coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl));
+% thesePCsToPlot = score(:,1:2);
+% otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
+% % project the other spikes to be plotted onto these new vectors
+% otherSpikesToPlotPCs = otherSpikesPCs(otherPCsToPlotInds,:);
+% otherPCsToPlotScores = bsxfun(@minus, otherSpikesToPlotPCs, mu)*coeff;
+% otherPCsToPlot = otherPCsToPlotScores(:,1:2);
+
 
 %%
 f = figure;
@@ -128,19 +149,23 @@ title(sprintf('waveform samples; amp=%.0fµV, SNR=%.2f', wfAmp, snr));
 subplot(4,5,[4 5 9 10]);
 % figure;
 hold off
-otherPCsToPlot = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
-h = plot(otherSpikesPCs(otherPCsToPlot,1), otherSpikesPCs(otherPCsToPlot,2), ...
+
+% h = plot(otherSpikesPCs(otherPCsToPlot,1), otherSpikesPCs(otherPCsToPlot,2), ...
+%     '.', 'MarkerSize', 0.05, 'Color', otherColor);
+h = plot(otherPCsToPlot(:,1), otherPCsToPlot(:,2), ...
     '.', 'MarkerSize', 0.05, 'Color', otherColor);
 drawnow;
 % hMarkers = h.MarkerHandle;
 hold on;
-h2 = plot(thesePCs(:,topChans(1)), thesePCs(:,topChans(2)), ...
+% h2 = plot(thesePCs(:,topChans(1)), thesePCs(:,topChans(2)), ...
+%     '.', 'MarkerSize', 0.05, 'Color', neuronColor);
+h = plot(thesePCsToPlot(:,1), thesePCsToPlot(:,2), ...
     '.', 'MarkerSize', 0.05, 'Color', neuronColor);
 drawnow;
 % hMarkers2 = h2.MarkerHandle;
 
 title(sprintf('PC features, iso distance = %.2f', stats.isoDistance))
-
+set(gca, 'YTickLabel', [], 'XTickLabel', []);
 % cEdge = hMarkers.EdgeColorData;
 % cEdge(4) = uint8(0.25*255);
 % cEdge2 = hMarkers2.EdgeColorData;

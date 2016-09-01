@@ -1,4 +1,5 @@
-ksRoot = 'G:\data\Hopkins\2016-07-22';
+% ksRoot = 'G:\data\Hopkins\2016-07-22';
+ksRoot = 'J:\M160731_MOEC\2016-08-28'
 loadPars.loadPCs = true;
 sp = loadKSdir(ksRoot, loadPars);
 
@@ -15,7 +16,7 @@ params.dataType = sp.dtype;
 params.filename = sp.dat_path;
 d = dir(params.filename); nSamp = d.bytes/2/sp.n_channels_dat;
 params.dataSize = [sp.n_channels_dat nSamp];
-params.chanMap = readNPY('channel_map.npy');
+params.chanMap = readNPY(fullfile(ksRoot, 'channel_map.npy'));
 params.Fs = sp.sample_rate;
 params.xcoords = sp.xcoords; params.ycoords = sp.ycoords;
 params.plotDistance = 100;
@@ -26,7 +27,7 @@ params.nPCsToPlot = 50000;
 sparsePCfeat = sparsePCs(pcFeat, pcFeatInd, sp.spikeTemplates);
 
 %%
-for q = 2%:length(inclCID)
+for q = 3%:length(inclCID)
     clusterID = inclCID(q);
 
 %     [v, i] = countUnique(sp.spikeTemplates(clu==clusterID));
