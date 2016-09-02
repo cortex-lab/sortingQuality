@@ -35,6 +35,7 @@ xc = params.xcoords; yc = params.ycoords;
 theseST = spikeTimes(clu==clusterID);
 
 % Extract waveforms from this neuron and from background
+params.nWFsToLoad = params.nWFsToPlot; % computing meanWF happens elsewhere now, so only load what we'll plot
 nWFsToLoad = min(params.nWFsToLoad, length(theseST));
 extractST = round(theseST(randperm(length(theseST), nWFsToLoad))*Fs);
 
@@ -56,9 +57,9 @@ for i = 1:params.nWFsToPlot %
      
 end
 
-medWF = squeeze(median(double(theseWF),1))';
-medWFuV = medWF.*params.gain;
-
+% medWF = squeeze(median(double(theseWF),1))';
+% medWFuV = medWF.*params.gain;
+medWFuV = stats.medWF;
 
 %%
 
@@ -133,17 +134,17 @@ xPlot = xc(chansToPlot);
 yPlot = yc(chansToPlot);
 p.LineWidth = 0.01; p.alpha = 0.25;
 for i=1:params.nWFsToPlot
-    plotWaveform(double(squeeze(bckgWF(i,chansToPlot,:))), xPlot, yPlot, 18, 0.2, [], 0.75*[1 1 1],p);
+    plotWaveform(double(squeeze(bckgWF(i,chansToPlot,:)))*params.gain, xPlot, yPlot, 18, 0.2/params.gain, [], 0.75*[1 1 1],p);
     hold on;
 end
 
 for i=1:params.nWFsToPlot
-    plotWaveform(double(squeeze(theseWF(i,chansToPlot,:))), xPlot, yPlot, 18, 0.2, [], neuronColor,p);
+    plotWaveform(double(squeeze(theseWF(i,chansToPlot,:)))*params.gain, xPlot, yPlot, 18, 0.2/params.gain, [], neuronColor,p);
     hold on;
 end
 
 p.LineWidth = 1; p.alpha = 1;
-plotWaveform(medWF(:,chansToPlot)', xPlot, yPlot, 18, 0.2, [], [0 0 0],p);
+plotWaveform(medWFuV(:,chansToPlot)', xPlot, yPlot, 18, 0.2/params.gain, [], [0 0 0],p);
 box off;
 title(sprintf('waveform samples; amp=%.0fµV, SNR=%.2f', wfAmp, snr));
 
