@@ -1,12 +1,23 @@
 
 function recStats = chronicQualityMeasures(ksDir, rawFilename, inclChans, gain)
+% function recStats = chronicQualityMeasures(ksDir, rawFilename, inclChans, gain)
+% Computes the agreed-upon quality statistics for showing probe performance
+% over time for chronically implanted probes:
+% 1) Rate of spikes >50uV
+% 2) Rate of spikes >6*MAD
+% 3) spike SNR, the peak amplitude divided by Vrms
+%
+% Inputs:
+% - ksDir, a path to the folder with kilosort outputs
+% - rawFilename, a path to the raw data file
+% - inclChans, which channels should be part of the counting (1:374 will
+% include all for a Neuropixels probe)
+% - gain, the gain setting on the probe
 
 %%
 % ksDir = 'J:\M160731_MOEC\2016-08-16';
-% rawFilename = 'Z:\multichanspikes\M160731_MOEC\2016-08-16\M160731_MOEC_2016-08-16_g0_t0.imec.ap_CAR.bin';
-% 
+% rawFilename = 'Z:\multichanspikes\M160731_MOEC\2016-08-16\M160731_MOEC_2016-08-16_g0_t0.imec.ap_CAR.bin'; 
 % inclChans = 1:330;
-% 
 % gain = 500;
 
 gainFactor = 0.6/512/gain*1e6;
