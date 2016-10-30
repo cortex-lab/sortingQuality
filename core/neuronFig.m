@@ -1,6 +1,6 @@
 
 
-function f = neuronFig(clusterID, spikeTimes, clu, sparsePCfeat, stats, params)
+function f = neuronFig(clusterID, spikeTimes, clu, sparsePCfeat, spikeAmps, stats, params)
 % Makes a plot of relevant stats/figures for a neuron
 %
 %
@@ -84,30 +84,63 @@ meanPC = mean(thesePCs);
 [~, ii] = sort(abs(meanPC), 2, 'descend');
 topChans = ii(1:2);
 
-% % Method 1: just pick the top two channels for this cluster
-% otherSpikesIncl = sparsePCfeat(:,topChans(1))~=0 & sparsePCfeat(:,topChans(2))~=0;
-% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, topChans);
+% Method 1: just pick the top two channels for this cluster
+otherSpikesIncl = sparsePCfeat(:,topChans(1))~=0 & ...
+    sparsePCfeat(:,topChans(2))~=0 & clu~=clusterID;
+otherSpikesPCs = sparsePCfeat(otherSpikesIncl, topChans);
+np = min(size(otherSpikesPCs,1), params.nPCsToPlot);
+otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), np);
+otherPCsToPlot = otherSpikesPCs(otherPCsToPlotInds,:);
+thesePCsToPlot = thesePCs(:,topChans);
+
+% % Method 2: figure out the top two PCs *of the PCs* of this neuron, project
+% % all other spikes onto those
+% pcInclChans = full(meanPC)~=0;
+% otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0; % those spikes with non-zero values on at least one included channel
+% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans);
+% 
+% thesePCsIncl = thesePCs(:,pcInclChans);
+% [coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl), 'Centered', false);
+% thesePCsToPlot = score(:,1:2);
 % otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
-% otherPCsToPlot = otherSpikesPCs(otherPCsToPlotInds,:);
-% thesePCsToPlot = thesePCs(:,topChans);
+% % project the other spikes to be plotted onto these new vectors
+% otherSpikesToPlotPCs = otherSpikesPCs(otherPCsToPlotInds,:);
+% otherPCsToPlot = otherSpikesToPlotPCs*coeff(:,1:2);
 
-% Method 2: figure out the top two PCs *of the PCs* of this neuron, project
-% all other spikes onto those
-pcInclChans = full(meanPC)~=0;
-otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0; % those spikes with non-zero values on at least one included channel
-otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans);
 
-thesePCsIncl = thesePCs(:,pcInclChans);
-% [coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl));
-[coeff, score, latent, tsquared, explained, mu] = pca(full(thesePCsIncl), 'Centered', false);
-thesePCsToPlot = score(:,1:2);
-otherPCsToPlotInds = randperm(size(otherSpikesPCs,1), params.nPCsToPlot);
-% project the other spikes to be plotted onto these new vectors
-otherSpikesToPlotPCs = otherSpikesPCs(otherPCsToPlotInds,:);
-% otherPCsToPlotScores = bsxfun(@minus, otherSpikesToPlotPCs, mu)*coeff;
-% otherPCsToPlot = otherPCsToPlotScores(:,1:2);
-% otherPCsToPlot = bsxfun(@minus, otherSpikesToPlotPCs, mu)*coeff(:,1:2);
-otherPCsToPlot = otherSpikesToPlotPCs*coeff(:,1:2);
+% % Method 3: one dimension is the mean PC of the cluster. Other dimension is
+% % the direction between this cluster and the nearest cluster. 
+% pcInclChans = full(meanPC)~=0;
+% otherSpikesIncl = sum(sparsePCfeat(:,pcInclChans)~=0,2)>0 & clu~=clusterID; % those spikes with non-zero values on at least one included channel
+% otherSpikesClu = clu(otherSpikesIncl);
+% otherSpikesPCs = sparsePCfeat(otherSpikesIncl, pcInclChans); % nOtherSpikes x nIncludedPC
+% thesePCsIncl = thesePCs(:,pcInclChans); % nSpikes x nIncludedPC
+% meanPCincl = meanPC(pcInclChans); % 1 x nIncludedPC
+% 
+% theseScore1 = thesePCsIncl*meanPCincl'; % nSpikes x 1
+% otherScore1 = otherSpikesPCs*meanPCincl'; % nOtherSpikes x 1
+% 
+% % this would be the linear discriminant if incorporated covariance
+% % matrices. But not sure that makes sense since there are so many other
+% % clusters...?
+% % direction2 = mean(theseResidPC)-mean(otherResidPC); % 1 x nIncludedPC 
+% % direction2 = mean(thesePCsIncl)-mean(otherSpikesPCs); % 1 x nIncludedPC
+% 
+% otherCID = unique(otherSpikesClu);
+% nOtherClu = length(otherCID);
+% otherMeanPCs = zeros(nOtherClu, sum(pcInclChans));
+% for q = 1:sum(pcInclChans)
+%     otherMeanPCs(:,q) = clusterAverage(otherSpikesClu, otherSpikesPCs(:,q));
+% end
+% similarity = meanPCincl*otherMeanPCs';
+% closestInd = find(similarity==max(similarity),1);
+% direction2 = meanPCincl-otherMeanPCs(closestInd,:);
+% 
+% theseScore2 = thesePCsIncl*direction2'; % nSpikes x 1
+% otherScore2 = otherSpikesPCs*direction2'; % nOtherSpikes x 1
+% 
+% thesePCsToPlot = [theseScore1 theseScore2];
+% otherPCsToPlot = [otherScore1 otherScore2];
 
 %%
 f = figure;
@@ -156,18 +189,18 @@ hold off
 % h = plot(otherSpikesPCs(otherPCsToPlot,1), otherSpikesPCs(otherPCsToPlot,2), ...
 %     '.', 'MarkerSize', 0.05, 'Color', otherColor);
 h = plot(otherPCsToPlot(:,1), otherPCsToPlot(:,2), ...
-    '.', 'MarkerSize', 0.05, 'Color', otherColor);
+    '.', 'MarkerSize', 3, 'Color', otherColor);
 drawnow;
 % hMarkers = h.MarkerHandle;
 hold on;
 % h2 = plot(thesePCs(:,topChans(1)), thesePCs(:,topChans(2)), ...
 %     '.', 'MarkerSize', 0.05, 'Color', neuronColor);
 h = plot(thesePCsToPlot(:,1), thesePCsToPlot(:,2), ...
-    '.', 'MarkerSize', 0.05, 'Color', neuronColor);
+    '.', 'MarkerSize', 3, 'Color', neuronColor);
 drawnow;
 % hMarkers2 = h2.MarkerHandle;
 
-title(sprintf('PC features, iso distance = %.2f', stats.isoDistance))
+title(sprintf('PC features, iso distance = %.2f, est. contamination = %.2f', stats.isoDistance, stats.mahalContamination))
 % set(gca, 'YTickLabel', [], 'XTickLabel', []);
 % cEdge = hMarkers.EdgeColorData;
 % cEdge(4) = uint8(0.25*255);
@@ -208,8 +241,8 @@ hold on;
 yl2 = ylim();
 ylim([0 max([yl(2) yl2(2)])]);
 yl2 = ylim();
-plot([-0.002 -0.002], yl2, 'k--');
-plot([0.002 0.002], yl2, 'k--');
+plot([-0.0015 -0.0015], yl2, 'k--');
+plot([0.0015 0.0015], yl2, 'k--');
 title(sprintf('ACG zoom, ISI cont = %.2f', stats.isiContamination))
 xlabel('time rel. to spike (sec)');
 
@@ -217,8 +250,18 @@ subplot(4,5,[14])
 ylim([0 max([yl(2) yl2(2)])]);
 
 %% plot of stability over time
-subplot(4,5, 17:20);
+subplot(4,5, 17:19);
 hold off;
+
+if isfield(params, 'highlightRegions') && ~isempty(params.highlightRegions)
+    % field is nx2    
+    for q = 1:size(params.highlightRegions,1)
+        hr = params.highlightRegions(1,:);
+        fill([hr(1) hr(2) hr(2) hr(1)], [0 0 1000 1000], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'EdgeAlpha', 0);
+        hold on;
+    end
+end
+
 
 binSize = 20;
 timeBins = 0:binSize:ceil(spikeTimes(end));
@@ -231,21 +274,39 @@ tpc = tpc-min(tpc);
 
 % yyaxis right
 
-plot(theseST, tpc, '.', 'Color', neuronColor);
+h1 = plot(theseST, tpc, '.', 'Color', neuronColor);
 hold on;
 % ylabel('top PC')
 
 % yyaxis left
 
 
-stairs(x,n, 'LineWidth', 2.0, 'Color', 'k');
+h2 = stairs(x,n, 'LineWidth', 2.0, 'Color', 'k');
+
+ymax = max([max(n) max(tpc)]);
+ylim([0 ymax]);
+
 title('firing rate over time')
 xlabel('time(sec)')
 ylabel('firing rate (sp/sec)')
 
-legend({'top PC', 'firing rate'})
+legend([h1 h2], {'top PC', 'firing rate'})
 
 box off;
+
+%% histogram of fit amplitudes 
+
+subplot(4,5,20)
+
+h = histogram(spikeAmps(clu==clusterID), 'Normalization', 'pdf', ...
+    'DisplayStyle', 'stairs');
+n = get(h, 'Values'); x = get(h, 'BinEdges');
+stairs(x(1:end-1), n, 'LineWidth', 2.0);
+
+xlabel('relative spike amplitude')
+ylabel('pdf')
+title('spike amplitude distribution');
+
 
 end
 

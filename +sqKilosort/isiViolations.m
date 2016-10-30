@@ -10,7 +10,7 @@ paramsPath= fullfile(resultsDirectory,'params.py');
 
 %% 
 
-refDur = 0.002;
+refDur = 0.0015;
 minISI = 0.0005;
 
 fprintf(1, 'loading data for ISI computation\n');
